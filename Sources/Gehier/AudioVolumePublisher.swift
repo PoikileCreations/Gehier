@@ -37,7 +37,7 @@ public class AudioVolumePublisher: NSObject, Subject {
     /// receive audio buffer data.
     ///
     /// - parameter audioEngine: An `AVAudioEngine` that publishes
-    ///   `AudioOutput` values.
+    ///   `AudioSnippet` values.
     /// - parameter minimumDecibels: The lowest decibel reading. This used to
     ///   calculate volume levels of the buffers sent by the audio engine.
     public init(audioEngine: AudioEngine,
@@ -60,8 +60,8 @@ public class AudioVolumePublisher: NSObject, Subject {
                     return
                 }
             },
-            receiveValue: { [weak self] (audioOutput) in
-                self?.publishAudioVolume(for: audioOutput.buffer, at: audioOutput.time)
+            receiveValue: { [weak self] (snippet) in
+                self?.publishAudioVolume(for: snippet.buffer, at: snippet.time)
         })
     }
 

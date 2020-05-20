@@ -4,25 +4,10 @@ import AVFoundation
 import Combine
 import Foundation
 
-/// An `AVAudioEngine` subclass that publishes `AudioOutput` objects as they're
-/// received. To receive buffers, callers should set up a `sink()` on the
-/// engine.
+/// An `AVAudioEngine` subclass that publishes `AudioSnippet` objects as
+/// they're received. To receive buffers, callers should set up a `sink()` on
+/// the engine.
 public final class AudioEngine: AVAudioEngine, Publisher {
-
-    // MARK: - struct AudioOutput
-
-    /// An `AVAudioBuffer` and the time at which it was captured. These types
-    /// match the parameters of `AVAudioInputNode.installTap()`'s completion
-    /// block.
-    public struct AudioOutput {
-
-        /// The audio data that was captured by the `AVAudioEngine`.
-        public var buffer: AVAudioPCMBuffer
-
-        /// The time at which the sample was captured.
-        public var time: AVAudioTime
-
-    }
 
     // MARK: - Defaults
 
@@ -33,7 +18,7 @@ public final class AudioEngine: AVAudioEngine, Publisher {
 
     // MARK: - Publisher Types
 
-    public typealias Output = AudioOutput
+    public typealias Output = AudioSnippet
 
     public typealias Failure = Error
 
@@ -41,7 +26,7 @@ public final class AudioEngine: AVAudioEngine, Publisher {
 
     /// The `Publisher` that this class wraps and delegates all publishing
     /// calls to.
-    private var publisher = PassthroughSubject<AudioOutput, Error>()
+    private var publisher = PassthroughSubject<AudioSnippet, Error>()
 
     // MARK: - AVAudioEngine Functions
 
@@ -104,7 +89,7 @@ public final class AudioEngine: AVAudioEngine, Publisher {
     /// - parameter time: The time at which the audio was captured.
     private func handleInputTapBuffer(_ buffer: AVAudioPCMBuffer,
                                       time: AVAudioTime) {
-        let output = AudioOutput(buffer: buffer, time: time)
+        let output = AudioSnippet(buffer: buffer, time: time)
         publisher.send(output)
     }
 
