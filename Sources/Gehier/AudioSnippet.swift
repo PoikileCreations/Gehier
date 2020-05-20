@@ -16,6 +16,6 @@ public struct AudioSnippet {
 
 }
 
-protocol AudioSnippetPublisher: Publisher where Output == AudioSnippet, Failure == Error {
+public protocol AudioSnippetPublisher: Publisher where Output == AudioSnippet, Failure == Error {
 
 }
