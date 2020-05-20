@@ -8,12 +8,14 @@ import Combine
 /// block.
 public struct AudioSnippet {
 
-    typealias Publisher = PassthroughSubject<AudioSnippet, Error>
-
     /// The audio data that was captured by the `AVAudioEngine`.
     public var buffer: AVAudioPCMBuffer
 
     /// The time at which the sample was captured.
     public var time: AVAudioTime
+
+}
+
+protocol AudioSnippetPublisher: Publisher where Output == AudioSnippet, Failure == Error {
 
 }

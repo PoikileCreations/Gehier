@@ -7,7 +7,7 @@ import Foundation
 /// An `AVAudioEngine` subclass that publishes `AudioSnippet` objects as
 /// they're received. To receive buffers, callers should set up a `sink()` on
 /// the engine.
-public final class AudioEngine: AVAudioEngine, Publisher {
+public final class AudioEngine: AVAudioEngine, AudioSnippetPublisher {
 
     // MARK: - Defaults
 
@@ -15,12 +15,6 @@ public final class AudioEngine: AVAudioEngine, Publisher {
         static let bus: AVAudioNodeBus = 0
         static let bufferSize: AVAudioFrameCount = 1024
     }
-
-    // MARK: - Publisher Types
-
-    public typealias Output = AudioSnippet
-
-    public typealias Failure = Error
 
     // MARK: - Properties
 
@@ -51,8 +45,8 @@ public final class AudioEngine: AVAudioEngine, Publisher {
 
     public func receive<S>(subscriber: S)
         where S: Subscriber,
-        AudioEngine.Failure == S.Failure,
-        AudioEngine.Output == S.Input {
+        Error == S.Failure,
+        AudioSnippet == S.Input {
             publisher.receive(subscriber: subscriber)
     }
 
