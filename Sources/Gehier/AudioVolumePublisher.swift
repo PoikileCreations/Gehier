@@ -3,90 +3,28 @@
 import AVFoundation
 import Combine
 import Foundation
+import SwiftUI
 
 /// Publishes `AudioVolume` objects at intervals from an `AVAudioEngine`.
-public class AudioVolumePublisher: NSObject, Subject {
-
-    // MARK: - Publisher Types
-
-    public typealias Failure = Never
-
-    public typealias Output = AudioVolume
-
-    // MARK: - Properties
+public class AudioVolumePublisher: NSObject, ObservableObject {
 
     /// The `AudioEngine` that supplies audio buffers for this class to
-    /// publisdsh to its own subscribers as audio level readings.
-    private var audioEngine: AudioEngine
+    /// publish to its own subscribers as audio level readings.
+    @ObservedObject private var audioEngine: AudioEngine
 
-    /// The subscription to the audio engine.
-    private var audioEngineSubscription: AnyCancellable?
+    @Published public var audioVolume = AudioVolume(decibels: 0.0,
+                                                    level: 0.0)
 
     /// The minimum value for decibel readings. This is used to calculate the
     /// `AudioVolume.level`. The default (as declared in the initializer) is
     /// `-80.0`.
-    private var minimumDecibels: Float
-
-    /// The passthrough publisher to which this `Publisher` delegates
-    /// everything.
-    private var publisher: PassthroughSubject<Output, Failure>
+    @Published public var minimumDecibels: Float = -80.0
 
     // MARK: - Initialization
 
-    /// Create the publisher with the audio engine to which it subscribes to
-    /// receive audio buffer data.
-    ///
-    /// - parameter audioEngine: An `AVAudioEngine` that publishes
-    ///   `AudioSnippet` values.
-    /// - parameter minimumDecibels: The lowest decibel reading. This used to
-    ///   calculate volume levels of the buffers sent by the audio engine.
-    public init(audioEngine: AudioEngine,
-                minimumDecibels: Float = -80.0) {
-        self.minimumDecibels = minimumDecibels
-        self.publisher = .init()
+    public init(audioEngine: AudioEngine) {
         self.audioEngine = audioEngine
-
         super.init()
-
-        // Subscribe to the audioEngine's audio level readings. This has to be
-        // done after super.init() because it uses `self` in the blocks.
-        audioEngineSubscription = audioEngine.sink(
-            receiveCompletion: { [weak self] (completion) in
-                switch completion {
-                case .finished:
-                    self?.send(completion: .finished)
-                case .failure:
-                    // Our Failure type is Never, so don't pass the error along.
-                    return
-                }
-            },
-            receiveValue: { [weak self] (snippet) in
-                self?.publishAudioVolume(for: snippet.buffer, at: snippet.time)
-        })
-    }
-
-    // MARK: - Publisher Functions
-
-    /// Connect a `Subscriber` that wants to receive `AudioVolume` readings.
-    public func receive<S>(subscriber: S)
-        where S: Subscriber,
-        AudioVolumePublisher.Failure == S.Failure,
-        AudioVolumePublisher.Output == S.Input {
-            publisher.receive(subscriber: subscriber)
-    }
-
-    // MARK: - Subject Functions
-
-    public func send(_ value: AudioVolume) {
-        publisher.send(value)
-    }
-
-    public func send(completion: Subscribers.Completion<Failure>) {
-        publisher.send(completion: completion)
-    }
-
-    public func send(subscription: Subscription) {
-        publisher.send(subscription: subscription)
     }
 
     // MARK: - Other Functions
@@ -111,11 +49,8 @@ public class AudioVolumePublisher: NSObject, Subject {
             let averageDb = 20 * log10(rootMeanSquare)
             let meterLevel = scaledDecibels(averageDb)
 
-            DispatchQueue.main.async { [unowned self] in
-                let volume = AudioVolume(decibels: Double(averageDb),
-                                         level: meterLevel)
-                self.publisher.send(volume)
-            }
+            audioVolume = AudioVolume(decibels: Double(averageDb),
+                                      level: meterLevel)
         }
     }
 

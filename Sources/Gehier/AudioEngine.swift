@@ -4,10 +4,9 @@ import AVFoundation
 import Combine
 import Foundation
 
-/// An `AVAudioEngine` subclass that publishes `AudioSnippet` objects as
-/// they're received. To receive buffers, callers should set up a `sink()` on
-/// the engine.
-public final class AudioEngine: AVAudioEngine, AudioSnippetPublisher {
+/// An `AVAudioEngine` subclass that has an `Observable` `AudioSnippet`
+/// object.
+public final class AudioEngine: AVAudioEngine, ObservableObject {
 
     // MARK: - Defaults
 
@@ -16,11 +15,11 @@ public final class AudioEngine: AVAudioEngine, AudioSnippetPublisher {
         static let bufferSize: AVAudioFrameCount = 1024
     }
 
-    // MARK: - Properties
+    // MARK: - ObservableObject
 
-    /// The `Publisher` that this class wraps and delegates all publishing
-    /// calls to.
-    private var publisher = PassthroughSubject<AudioSnippet, Error>()
+    @Published var audioSnippet = AudioSnippet(buffer: .init(), time: .init())
+
+    // MARK: - Properties
 
     // MARK: - AVAudioEngine Functions
 
@@ -32,22 +31,6 @@ public final class AudioEngine: AVAudioEngine, AudioSnippetPublisher {
         // The default bus number and buffer size come from Apple's sample
         // project. I don't know what they mean.
         try start(onBus: Defaults.bus, bufferSize: Defaults.bufferSize)
-    }
-
-    /// Stop the audio, then notify subscribers that we won't be sending any
-    /// more buffers.
-    public override func stop() {
-        super.stop()
-        publisher.send(completion: .finished)
-    }
-
-    // MARK: - Publisher Functions
-
-    public func receive<S>(subscriber: S)
-        where S: Subscriber,
-        Error == S.Failure,
-        AudioSnippet == S.Input {
-            publisher.receive(subscriber: subscriber)
     }
 
     // MARK: - Other Functions
@@ -83,8 +66,7 @@ public final class AudioEngine: AVAudioEngine, AudioSnippetPublisher {
     /// - parameter time: The time at which the audio was captured.
     private func handleInputTapBuffer(_ buffer: AVAudioPCMBuffer,
                                       time: AVAudioTime) {
-        let output = AudioSnippet(buffer: buffer, time: time)
-        publisher.send(output)
+        audioSnippet = AudioSnippet(buffer: buffer, time: time)
     }
 
 }

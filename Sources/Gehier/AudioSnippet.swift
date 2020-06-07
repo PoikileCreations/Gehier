@@ -15,7 +15,3 @@ public struct AudioSnippet {
     public var time: AVAudioTime
 
 }
-
-public protocol AudioSnippetPublisher: Publisher where Output == AudioSnippet, Failure == Error {
-
-}
