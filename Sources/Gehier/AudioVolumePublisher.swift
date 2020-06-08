@@ -8,10 +8,9 @@ import SwiftUI
 /// Publishes `AudioVolume` objects at intervals from an `AVAudioEngine`.
 public class AudioVolumePublisher: NSObject, ObservableObject {
 
-    /// The `AudioEngine` that supplies audio buffers for this class to
-    /// publish to its own subscribers as audio level readings.
-    @ObservedObject private var audioEngine: AudioEngine
+    // MARK: - Published Properties
 
+    /// The audio reading that's updated repeatedly for subscribers to observe.
     @Published public var audioVolume = AudioVolume(decibels: 0.0,
                                                     level: 0.0)
 
@@ -20,10 +19,15 @@ public class AudioVolumePublisher: NSObject, ObservableObject {
     /// `-80.0`.
     @Published public var minimumDecibels: Float = -80.0
 
+    // MARK: - Internal Properties
+
+    /// The snippet that's updated by an `AudioEngine`.
+    private var audioSnippet: Binding<AudioSnippet>
+
     // MARK: - Initialization
 
-    public init(audioEngine: AudioEngine) {
-        self.audioEngine = audioEngine
+    public init(audioSnippet: Binding<AudioSnippet>) {
+        self.audioSnippet = audioSnippet
         super.init()
     }
 

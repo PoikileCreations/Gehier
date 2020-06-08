@@ -17,9 +17,7 @@ public final class AudioEngine: AVAudioEngine, ObservableObject {
 
     // MARK: - ObservableObject
 
-    @Published var audioSnippet = AudioSnippet(buffer: .init(), time: .init())
-
-    // MARK: - Properties
+    @Published public var audioSnippet = AudioSnippet(buffer: .init(), time: .init())
 
     // MARK: - AVAudioEngine Functions
 
@@ -58,7 +56,7 @@ public final class AudioEngine: AVAudioEngine, ObservableObject {
         try super.start()
     }
 
-    /// Receive audio input data and send it to subscribers. This function's
+    /// Set the `audioSnippet` using audio input data. This function's
     /// signature must match that of the `AVAudioInputNode.installTap()`'s
     /// completion block.
     ///
